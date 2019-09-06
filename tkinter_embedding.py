@@ -7,11 +7,13 @@ from numpy import arange, sin, pi
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
 from plotter import Plotter
 from buffer import Buffer
 
-import multiprocessing
+import threading
+import time
 
 
 def on_key_event(event):
@@ -34,6 +36,7 @@ figure_frame.pack(side=tk.TOP)
 control_frame = tk.Frame(root)
 control_frame.pack(side=tk.TOP)
 
+plt.style.use('ggplot')
 fig = Figure(figsize=(5, 4), dpi=100)
 canvas = FigureCanvasTkAgg(fig, master=figure_frame)
 canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
@@ -64,9 +67,24 @@ plotter.plot(buffer.data)
 
 def run():
     for j in range(500):
+        print('-', j)
         plotter.update(np.random.randn(1, buffer.info['channels']))
 
 
-button['command'] = run
+def foo():
+    print('start.')
+    for j in range(3):
+        print(j)
+        time.sleep(1)
+    print('end.')
+
+
+def test():
+    p = threading.Thread(target=run)
+    p.start()
+    p.join()
+
+
+button['command'] = test
 
 tk.mainloop()
