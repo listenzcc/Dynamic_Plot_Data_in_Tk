@@ -3,14 +3,11 @@
 import numpy as np
 import tkinter as tk
 import matplotlib
-from numpy import arange, sin, pi
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backend_bases import key_press_handler
-from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
-from plotter import Plotter
-from buffer import Buffer
+from local_toolbox import Buffer, Plotter
 
 import threading
 import time
@@ -37,7 +34,12 @@ control_frame = tk.Frame(root)
 control_frame.pack(side=tk.TOP)
 
 plt.style.use('ggplot')
-fig = Figure(figsize=(5, 4), dpi=100)
+plotter = Plotter()
+fig, axe = plotter.fig, plotter.axe
+# fig, axes = plt.subplots(1, 1)
+# fig = Figure(figsize=(5, 4), dpi=100)
+# axe = fig.add_subplot(2, 1, 1)
+
 canvas = FigureCanvasTkAgg(fig, master=figure_frame)
 canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
@@ -50,16 +52,11 @@ button.grid(row=0, column=1, padx=2, pady=0)
 button = tk.Button(master=control_frame, text='Go')
 button.grid(row=0, column=0, padx=2, pady=0)
 
-t = arange(0.0, 3, 0.01)
-s = sin(2*pi*t)
-axe = fig.add_subplot(2, 1, 1)
-axe.plot(t, s)
-
 buffer = Buffer()
 buffer.push(np.random.randn(50, buffer.info['channels']))
 buffer.display()
 
-plotter = Plotter(fig, axe)
+
 plotter.prepare_plot(max_length=buffer.info['max_length'],
                      channels=buffer.info['channels'])
 plotter.plot(buffer.data)
@@ -82,7 +79,6 @@ def foo():
 def test():
     p = threading.Thread(target=run)
     p.start()
-    p.join()
 
 
 button['command'] = test

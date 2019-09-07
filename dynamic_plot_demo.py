@@ -39,7 +39,7 @@ plt.draw()
 plt.pause(1 / frame_rate)
 
 
-for j in range(1000):
+for j in range(100):
     buffer.push(np.random.randn(1))
 
     line[0].set_xdata(buffer.x_data)
@@ -61,4 +61,3 @@ for j in range(1000):
     axes[0].set_title(j)
     time.sleep(1 / frame_rate)
     print(time.time() - t)
-
