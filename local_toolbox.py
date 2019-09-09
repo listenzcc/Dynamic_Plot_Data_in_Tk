@@ -17,7 +17,7 @@ class Buffer():
     def push(self, new_data):
         self.new_data = new_data
         self.data = np.concatenate((self.data, new_data))
-        self.data = self.data[:self.info['max_length']]
+        self.data = self.data[-self.info['max_length']:]
 
     def pop(self):
         if self.new_data is None:

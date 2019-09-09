@@ -54,11 +54,24 @@ class App():
         buffer.push(np.random.randn(50, buffer.info['channels']))
         buffer.display()
 
+        # Bound _start_thread function on Go button.
+        self.buttons['Go'].config(command=self._run)
+
+        self.buffer = buffer
+
+    def _start_thread(self):
+        # Initialize and start thread for _run.
+        p = threading.Thread(target=self._run)
+        p.start()
+
+    def _run(self):
         # Plot using ggplot
         plt.style.use('ggplot')
         fig, axe = plt.subplots(1, 1, figsize=(5, 4), dpi=100)
-        lines = axe.plot(buffer.data, '-', alpha=0.8)
-        axe.set_ylim([-1, 100])
+        lines = axe.plot(self.buffer.data, '-', alpha=0.8)
+        axe.set_ylim([-1, 15])
+        axe.set_xlim([0, self.buffer.info['max_length'] * 3])
+        axe.draw()
 
         # Embed canvas on figure frame.
         canvas = FigureCanvasTkAgg(fig, master=self.frames['figure'])
@@ -67,28 +80,15 @@ class App():
         # Embed on_key_event for key press on figure.
         canvas.mpl_connect('key_press_event', self.on_key_event)
 
-        # Bound _start_thread function on Go button.
-        self.buttons['Go'].config(command=self._run)
-
-        self.buffer = buffer
-        self.fig, self.axe = fig, axe
-        self.lines = lines
-
-    def _start_thread(self):
-        # Initialize and start thread for _run.
-        p = threading.Thread(target=self._run)
-        p.start()
-
-    def _run(self):
-        # Updata plotter for 500 times.
+        # Update plotter for 500 times.
         for j in range(500):
             print('-', j)
             self.buffer.push(np.random.randn(1, self.buffer.info['channels']))
-            self.axe.redraw_in_frame()
-            for i, line in enumerate(self.lines):
+            axe.redraw_in_frame()
+            for i, line in enumerate(lines):
                 line.set_ydata(self.buffer.data[:, i] + i)
-                self.axe.draw_artist(line)
-            self.fig.canvas.blit(self.axe.bbox)
+                axe.draw_artist(line)
+            fig.canvas.blit(axe.bbox)
 
     def on_key_event(self, event):
         # Handel key press.
