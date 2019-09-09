@@ -77,7 +77,7 @@ def foo():
 
 
 def test():
-    p = threading.Thread(target=run)
+    p = threading.Thread(target=foo)
     p.start()
 
 
