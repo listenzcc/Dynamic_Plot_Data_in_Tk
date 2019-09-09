@@ -64,7 +64,7 @@ class App():
         # however I hope there are not too many threads.
         # I know the limitation of threads is stupid,
         # but the demo may not be too complicated, since it can do nothing.
-        if len(self.threads) > 65536:
+        if len(self.threads) > 13:
             raise('Too many threads exists, can not start new thread.')
             return 1
         name = '_thread_%d' % len(self.threads)

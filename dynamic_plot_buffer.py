@@ -22,7 +22,7 @@ plt.draw()
 
 plt.pause(1 / frame_rate)
 
-input('Press enter to start.')
+# input('Press enter to start.')
 
 for j in range(100):
     plotter.update(np.random.randn(1, buffer.info['channels']))

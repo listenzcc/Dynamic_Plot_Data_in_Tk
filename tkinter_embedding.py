@@ -77,10 +77,10 @@ def foo():
 
 
 def test():
-    p = threading.Thread(target=foo)
+    p = threading.Thread(target=run)
     p.start()
 
 
-button['command'] = test
+button['command'] = run  # test
 
 tk.mainloop()
