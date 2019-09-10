@@ -10,14 +10,13 @@ class Buffer():
         self.info = {}
         self.data = np.zeros((max_length, channels))
         self.new_data = None
-
         self.comment('max_length', max_length)
         self.comment('channels', channels)
 
     def push(self, new_data):
-        self.new_data = new_data
         self.data = np.concatenate((self.data, new_data))
         self.data = self.data[-self.info['max_length']:]
+        self.new_data = new_data
 
     def pop(self):
         if self.new_data is None:
@@ -26,8 +25,8 @@ class Buffer():
         self.new_data = None
         return out
 
-    def fetch(self, start=0, stop=0):
-        return np.array(self.data[start:stop])
+    def fetch(self, start=0, stop=None):
+        return self.data[start:stop]
 
     def length(self):
         return len(self.data)
@@ -35,7 +34,7 @@ class Buffer():
     def comment(self, key, value):
         self.info[key] = value
 
-    def display(self):
+    def print(self):
         print('-' * 80)
         self.comment('_shape', self.data.shape)
         pprint(self.info)
