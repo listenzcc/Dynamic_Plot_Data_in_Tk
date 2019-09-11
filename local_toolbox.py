@@ -59,6 +59,8 @@ class Buffer():
     def print(self):
         # Print infomations.
         print('-' * 80)
-        # _shape refers current shape of the buffered data.
-        self.comment('_shape', self.data.shape)
+        # _shape refers current shape of the buffered data and new data.
+        self.comment('_data_shape', self.data.shape)
+        self.comment('_new_data_shape', self.new_data.shape)
+        # Print updated infomations.
         pprint(self.info)
