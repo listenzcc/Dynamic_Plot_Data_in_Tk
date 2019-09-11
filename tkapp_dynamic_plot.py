@@ -105,7 +105,8 @@ class App():
 
     def _selectors_change(self):
         self.displayer_info['channels'] = [
-            name for name, selector in self.selectors.items() if selector[1].get() == 1]
+            name for name, selector in self.selectors.items()
+            if selector[1].get() == 1]
 
     def bounding(self):
         # Bound _quit function on Quit button.
