@@ -6,80 +6,59 @@ import matplotlib.pyplot as plt
 
 
 class Buffer():
-    def __init__(self, max_length=100, channels=13):
+    '''
+    This is a data buffer.
+    '''
+    def __init__(self, capacity=500, channels=13):
+        # Information of the buffer.
         self.info = {}
-        self.data = np.zeros((max_length, channels))
-        self.new_data = None
-        self.comment('max_length', max_length)
+        # Capacity of the buffer.
+        self.comment('capacity', capacity)
+        # Number of channels.
         self.comment('channels', channels)
+        # Initialize buffer with capacity and channels.
+        self.data = np.zeros((capacity, channels))
+        # Initialize new_data.
+        # new_data stores the lastest pushed data.
+        self.new_data = None
 
     def push(self, new_data):
+        # Push new_data into the buffer.
+        # Use FIFO protocol to pervent the buffer exceeding capacity.
+        # Temporary concatenate self.data and new_data.
         self.data = np.concatenate((self.data, new_data))
-        self.data = self.data[-self.info['max_length']:]
+        # Shrink buffer back to its capacity.
+        self.data = self.data[-self.info['capacity']:]
+        # Storage new_data.
         self.new_data = new_data
 
     def pop(self):
+        # Pop new_data since it storages lastest pushed data.
         if self.new_data is None:
+            # If new_data is None, return None.
             return None
+        # Set temporary variable out for new_data.
         out = self.new_data
+        # Clear new_data.
         self.new_data = None
+        # Return out.
         return out
 
     def fetch(self, start=0, stop=None):
+        # Peek buffered data from start to stop.
         return self.data[start:stop]
 
     def length(self):
+        # Return current length of the buffer.
         return len(self.data)
 
     def comment(self, key, value):
+        # Record information.
         self.info[key] = value
 
     def print(self):
+        # Print infomations.
         print('-' * 80)
+        # _shape refers current shape of the buffered data.
         self.comment('_shape', self.data.shape)
         pprint(self.info)
-
-
-class Plotter():
-    def __init__(self, frame_rate=20):
-        self.fig, self.axe = plt.subplots(1, 1, figsize=(5, 4), dpi=100)
-        # self.fig = fig
-        # self.axe = axe
-        self.frame_rate = frame_rate
-        # self.background = fig.canvas.copy_from_bbox(axe.bbox)
-
-    def prepare_plot(self, max_length, channels):
-        self.data = np.empty((0, channels))
-        self.now = 0
-        self.max_length = max_length
-
-        self.lines = [e for e in range(channels)]
-        for j in range(channels):
-            self.lines[j] = self.axe.plot(self.data[:, j] + j, '-', alpha=0.8)
-
-        self.axe.set_xlim([0, max_length-1])
-        self.axe.set_ylim([-1, channels+1])
-        self.axe.set_title('Init')
-
-    def plot(self, data):
-        self.data = data
-        self.now = self.data.shape[0]
-        self.lines = self.axe.plot(data, '-', alpha=0.8)
-
-    def update(self, new_data):
-        if new_data is None:
-            return 0
-
-        for j in range(new_data.shape[0]):
-            self.now += 1
-            self.now %= self.max_length
-            self.data[self.now] = new_data[j]
-
-        for j, line in enumerate(self.lines):
-            line.set_ydata(self.data[:, j] + j)
-
-        self.axe.redraw_in_frame()
-        for line in self.lines:
-            self.axe.draw_artist(line)
-
-        self.fig.canvas.blit(self.axe.bbox)
