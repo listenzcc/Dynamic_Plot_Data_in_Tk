@@ -9,15 +9,15 @@ class Buffer():
     '''
     This is a data buffer.
     '''
-    def __init__(self, capacity=500, channels=13):
+    def __init__(self, capacity=500, num_channels=13):
         # Information of the buffer.
         self.info = {}
         # Capacity of the buffer.
         self.comment('capacity', capacity)
         # Number of channels.
-        self.comment('channels', channels)
-        # Initialize buffer with capacity and channels.
-        self.data = np.zeros((capacity, channels))
+        self.comment('num_channels', num_channels)
+        # Initialize buffer with capacity and num_channels.
+        self.data = np.zeros((capacity, num_channels))
         # Initialize new_data.
         # new_data stores the lastest pushed data.
         self.new_data = None
