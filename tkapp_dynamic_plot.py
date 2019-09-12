@@ -10,64 +10,21 @@ import threading
 import tkinter as tk
 import matplotlib
 import matplotlib.pyplot as plt
+from pprint import pprint
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from local_toolbox import Buffer
 
 
 class App():
-    def __init__(self, root, frame_rate=20, record_rate=30, num_channels=15):
+    def __init__(self, root, frame_rate=20, record_rate=30, num_channels=17):
         # Initialize root.
         self.root = root
-        self.num_channels = num_channels
 
-        # Initialize frames.
-        self.frames = dict(
-            Figure=tk.Frame(root),  # Frame of figure.
-            Control=tk.Frame(root),  # Frame of controls.
-            Status=tk.Frame(root),  # Frame of status.
-            Selector=tk.Frame(root),  # Frame of selectors.
-        )
+        # Initialize parameters.
+        self.init_params(frame_rate, record_rate, num_channels)
 
-        # Initialize buttons.
-        self.buttons = dict(
-            # Display button, toggle display.
-            Display=tk.Button(self.frames['Control']),
-            # Record button, toggle record.
-            Record=tk.Button(self.frames['Control']),
-            # Quit button, close window.
-            Quit=tk.Button(self.frames['Control']),
-        )
-
-        # Initialize labels.
-        self.labels = dict(
-            # Display status label.
-            Display=tk.Label(self.frames['Status']),
-            # Record status label.
-            Record=tk.Label(self.frames['Status']),
-        )
-
-        # Initialize selectors.
-        self.selectors = dict()
-        for j in range(num_channels):
-            self.selectors[j] = [tk.Checkbutton(
-                self.frames['Selector']), tk.IntVar()]
-
-        # Initialize record parameters.
-        self.recorder_info = dict(
-            buffer=Buffer(num_channels=self.num_channels),  # Buffer of data.
-            record_rate=record_rate,  # Record rate.
-            record_on=False,  # Record switcher.
-        )
-
-        # Initialize display parameters.
-        self.displayer_info = dict(
-            frame_rate=frame_rate,  # Frame rate of animation.
-            display_on=False,  # Display switcher.
-            idx=0,  # Current vertical index.
-            max_length=100,  # Length to display.
-            channels=range(self.num_channels),  # Channels to display.
-            height=2,  # Height of each channel.
-        )
+        # Create components.
+        self.create()
 
         # Layout the tkinter GUI.
         self.layout()
@@ -78,34 +35,91 @@ class App():
         # Overwrite onclose function for safety quit.
         self.root.protocol('WM_DELETE_WINDOW', self._quit)
 
+    def create(self):
+        # Create components.
+        # Create frames.
+        self.frames = dict(
+            Figure=tk.Frame(root),  # Frame of figure.
+            Control=tk.Frame(root),  # Frame of controls.
+            Status=tk.Frame(root),  # Frame of status.
+            Selector=tk.Frame(root),  # Frame of selectors.
+        )
+
+        # Create buttons.
+        self.buttons = dict(
+            # Display button, toggle display.
+            Display=tk.Button(self.frames['Control']),
+            # Record button, toggle record.
+            Record=tk.Button(self.frames['Control']),
+            # Quit button, close window.
+            Quit=tk.Button(self.frames['Control']),
+        )
+
+        # Create labels.
+        self.labels = dict(
+            # Display status label.
+            Display=tk.Label(self.frames['Status']),
+            # Record status label.
+            Record=tk.Label(self.frames['Status']),
+        )
+
+        # Create selectors.
+        self.selectors = dict()
+        for j in range(self.recorder_info['buffer'].info['num_channels']):
+            # Each selector is a list,
+            # [Checkbutton instance, IntVar instance]
+            self.selectors[j] = [tk.Checkbutton(
+                self.frames['Selector']), tk.IntVar()]
+
+    def init_params(self, frame_rate, record_rate, num_channels):
+        # self.frame_rate = frame_rate
+        # self.record_rate = record_rate
+        # self.num_channels = num_channels
+ 
+        # Initialize record parameters.
+        self.recorder_info = dict(
+            buffer=Buffer(num_channels=num_channels),  # Buffer of data.
+            record_rate=record_rate,  # Record rate.
+            record_on=False,  # Record switcher.
+        )
+
+        # Initialize display parameters.
+        self.displayer_info = dict(
+            frame_rate=frame_rate,  # Frame rate of animation.
+            display_on=False,  # Display switcher.
+            idx=0,  # Current vertical index.
+            max_length=100,  # Length to display.
+            channels=range(num_channels),  # Channels to display.
+            height=2,  # Height of each channel.
+        )
+
     def layout(self):
         # Place frames.
+        print('Placing frames.')
+        pprint(self.frames)
         for name, frame in self.frames.items():
-            print(name)
             frame.pack(side=tk.TOP)
 
         # Place buttons in control frame.
+        print('Placing buttons.')
+        pprint(self.buttons)
         for name, button in self.buttons.items():
-            print(name)
             button.config(text=name)
             button.pack(side=tk.LEFT, padx=5, pady=1)
 
         # Place labels in status frame.
+        print('Placing labels.')
+        pprint(self.labels)
         for name, label in self.labels.items():
-            print(name)
             label.config(text=name)
             label.pack(side=tk.LEFT, padx=5, pady=1)
 
         # Place selectors in selectors frame.
+        print('Placing selectors.')
+        pprint(self.selectors)
         for idx, selector in self.selectors.items():
-            print(idx)
-            selector[0].config(text=idx, variable=selector[1])
+            selector[0].config(text=idx)
             selector[0].grid(row=idx // 5, column=idx % 5)
-            selector[1].set(1)
-
-    def _selectors_change(self):
-        self.displayer_info['channels'] = [
-            name for name, selector in self.selectors.items() if selector[1].get() == 1]
 
     def bounding(self):
         # Bound _quit function on Quit button.
@@ -113,7 +127,12 @@ class App():
 
         # Bound _selectors_change function on selectors.
         for selector in self.selectors.values():
-            selector[0].config(command=self._selectors_change)
+            # Bounding variable.
+            selector[0].config(variable=selector[1])
+            # Setting variable as 1 means being selected.
+            selector[1].set(1)
+            # Bounding onchange function.
+            selector[0].config(command=self._selectors_onchange)
 
         # Init buffer.
         buffer = self.recorder_info['buffer']
@@ -149,10 +168,16 @@ class App():
         self.labels['Display'].config(bg='red')
         self.displayer_info['display_on'] = False
         self.buttons['Display'].config(command=self._realtime_display)
-        # Follow is components used for _realtime_display function.
+        # Followings are components used for _realtime_display function.
         self.lines = lines
         self.fig = fig
         self.axe = axe
+
+    def _selectors_onchange(self):
+        # Designed to run on selectors onchange,
+        # to toggle channels display status.
+        self.displayer_info['channels'] = [
+            name for name, selector in self.selectors.items() if selector[1].get() == 1]
 
     def _biased(self, data, j):
         # Compute bias for j-th channel.
@@ -161,6 +186,7 @@ class App():
         return data[:, j] + bias
 
     def _toggle_record(self, init=False):
+        # When init is True, initialize record function as closed.
         if init:
             # Change button text into ON.
             self.buttons['Record'].config(text='Record_ON')
@@ -168,7 +194,8 @@ class App():
             # Turn off record.
             self.recorder_info['record_on'] = False
             return 0
-        # Toggle record.
+
+        # Toggle record function.
         if self.recorder_info['record_on']:
             # Change button text into ON.
             self.buttons['Record'].config(text='Record_ON')
