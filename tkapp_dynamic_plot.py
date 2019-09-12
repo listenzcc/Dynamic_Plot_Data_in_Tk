@@ -35,6 +35,30 @@ class App():
         # Overwrite onclose function for safety quit.
         self.root.protocol('WM_DELETE_WINDOW', self._quit)
 
+    """ Initialize parameters. recorder_info and displayer_info """
+    def init_params(self, frame_rate, record_rate, num_channels):
+        # self.frame_rate = frame_rate
+        # self.record_rate = record_rate
+        # self.num_channels = num_channels
+ 
+        # Initialize record parameters.
+        self.recorder_info = dict(
+            buffer=Buffer(num_channels=num_channels),  # Buffer of data.
+            record_rate=record_rate,  # Record rate.
+            record_on=False,  # Record switcher.
+        )
+
+        # Initialize display parameters.
+        self.displayer_info = dict(
+            frame_rate=frame_rate,  # Frame rate of animation.
+            display_on=False,  # Display switcher.
+            idx=0,  # Current vertical index.
+            max_length=100,  # Length to display.
+            channels=range(num_channels),  # Channels to display.
+            height=2,  # Height of each channel.
+        )
+
+    """ Create components, frames, buttons, labels and selectors. """
     def create(self):
         # Create components.
         # Create frames.
@@ -71,28 +95,7 @@ class App():
             self.selectors[j] = [tk.Checkbutton(
                 self.frames['Selector']), tk.IntVar()]
 
-    def init_params(self, frame_rate, record_rate, num_channels):
-        # self.frame_rate = frame_rate
-        # self.record_rate = record_rate
-        # self.num_channels = num_channels
- 
-        # Initialize record parameters.
-        self.recorder_info = dict(
-            buffer=Buffer(num_channels=num_channels),  # Buffer of data.
-            record_rate=record_rate,  # Record rate.
-            record_on=False,  # Record switcher.
-        )
-
-        # Initialize display parameters.
-        self.displayer_info = dict(
-            frame_rate=frame_rate,  # Frame rate of animation.
-            display_on=False,  # Display switcher.
-            idx=0,  # Current vertical index.
-            max_length=100,  # Length to display.
-            channels=range(num_channels),  # Channels to display.
-            height=2,  # Height of each channel.
-        )
-
+    """ Place components. Place frames, buttons, labels and selectors """
     def layout(self):
         # Place frames.
         print('Placing frames.')
@@ -121,6 +124,10 @@ class App():
             selector[0].config(text=idx)
             selector[0].grid(row=idx // 5, column=idx % 5)
 
+    """ Bounding functions.
+        _quit on Quit button,
+        _selectors_onchange on selectors,
+        _toggle_record on Record button """
     def bounding(self):
         # Bound _quit function on Quit button.
         self.buttons['Quit'].config(command=self._quit)
@@ -173,18 +180,20 @@ class App():
         self.fig = fig
         self.axe = axe
 
+    # Designed to run on selectors onchange,
+    # to toggle channels display status.
     def _selectors_onchange(self):
-        # Designed to run on selectors onchange,
-        # to toggle channels display status.
-        self.displayer_info['channels'] = [
+       self.displayer_info['channels'] = [
             name for name, selector in self.selectors.items() if selector[1].get() == 1]
 
+    # Return biased data on j-th channel.
     def _biased(self, data, j):
         # Compute bias for j-th channel.
         bias = j * self.displayer_info['height']
         # Return biased data of j-th channel.
         return data[:, j] + bias
 
+    # Toggle record function.
     def _toggle_record(self, init=False):
         # When init is True, initialize record function as closed.
         if init:
@@ -209,14 +218,13 @@ class App():
             # Turn off record.
             self.recorder_info['record_on'] = True
 
+    # Initialize and start background thread.
     def _start_thread(self, target):
-        # Initialize and start background thread.
-        # Recording function.
         p = threading.Thread(target=target)
         p.start()
 
+    # Realtime feeding data into buffer.
     def _realtime_record(self):
-        # A thread that records real-time feedings.
         # Start itself.
         self._realtime_record_on = True
         # Print starts.
@@ -240,6 +248,7 @@ class App():
         # Print stops.
         print('Recording process stops.')
 
+    # Realtime display.
     def _realtime_display(self):
         # Toggle display.
         if self.displayer_info['display_on']:
@@ -314,10 +323,12 @@ class App():
         # Loop stops means display stops.
         print('Display stops')
 
+    # Key pressed event handler.
     def on_key_event(self, event):
         # Handel key press.
         print('You pressed %s' % event.key)
 
+    # Safety quit.
     def _quit(self):
         # Stop display thread.
         self.displayer_info['display_on'] = False
